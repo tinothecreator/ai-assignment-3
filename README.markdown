@@ -7,7 +7,6 @@ Project_Root/
 │   ├── BTC_train.csv          # Training dataset for Bitcoin price prediction
 │   └── BTC_test.csv           # Test dataset for Bitcoin price prediction
 ├── gp_classifier/             # Genetic Programming classifier (Java)
-│   ├── src/
 │   │   ├── Node.java          # Interface for GP nodes
 │   │   ├── FeatureNode.java   # Terminal node representing features
 │   │   ├── FunctionNodes/     # Function nodes (Add, Subtract, Multiply, Divide)
