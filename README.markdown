@@ -22,10 +22,11 @@ Project_Root/
 │   ├── mlp_model.py           # MLP implementation using TensorFlow/PyTorch
 │   ├── requirements.txt       # Python dependencies (e.g., numpy, scikit-learn)
 │   └── run_mlp.sh             # Script to run MLP: python mlp_model.py <train> <test>
-├── decision_tree/             # Decision Tree classifier (Weka J48)
-│   ├── dt_model.arff          # ARFF-formatted data for Weka
-│   ├── run_dt.sh              # Script to run Decision Tree: java weka.classifiers.trees.J48 -t <train> -T <test>
-│   └── weka_lib/              # Weka JAR files (if needed)
+decision_tree/
+    ├── dt_model.arff          # ARFF-formatted training/test data (converted from CSV)
+    ├── J48_DecisionTree.java  # Java code to run J48 using Weka
+    ├── weka.jar               # Weka library (if not globally installed)
+    └── run_dt.sh              # Script to execute: `java -cp weka.jar J48_DecisionTree`
 ├── report/                    # Project report
 │   ├── report.tex             # LaTeX source for the group report
 │   └── results_table.tex      # LaTeX table with results and statistical tests
