@@ -7,7 +7,8 @@ import java.util.Random;
 public class Individual {
     private Node root;
     private double fitness;
-    private static final int MAX_DEPTH = 3;
+    private static final int MAX_DEPTH = 4; // Increased slightly but controlled
+    private static final int MAX_NODES = 100; // Add node count limit
     private static Random rand = new Random(); // Changed to non-final
 
     // Add static method to set Random
@@ -25,9 +26,9 @@ public class Individual {
         this.root = root;
     }
 
-    // Build a tree using "grow" or "full" method
     private Node buildTree(int depth, int numFeatures, boolean grow) {
-        if (depth >= MAX_DEPTH || (grow && rand.nextBoolean())) {
+        if (depth >= MAX_DEPTH || countNodes(root) > MAX_NODES || (grow && rand.nextBoolean())) {
+            // Force terminal if limits exceeded
             return rand.nextBoolean() ? new FeatureNode(rand.nextInt(numFeatures))
                     : new ConstantNode(rand.nextDouble() * 2 - 1);
         } else {
@@ -101,6 +102,15 @@ public class Individual {
                 correct++;
         }
         fitness = (double) correct / data.size();
+        // Add parsimony pressure (penalize tree size)
+        int treeSize = countNodes(root);
+        fitness *= Math.pow(0.99, treeSize / 50.0); // Adjust 0.99 and 50 as needed
+    }
+
+    private int countNodes(Node node) {
+        if (node == null)
+            return 0;
+        return 1 + countNodes(node.getLeft()) + countNodes(node.getRight());
     }
 
     // Getters

@@ -7,10 +7,10 @@ import java.util.Random;
 
 public class GPClassifier {
 
-    private static void savePredictions(List<double[]> testData, List<Integer> testLabels, 
-                                      Individual best, String path) {
+    private static void savePredictions(List<double[]> testData, List<Integer> testLabels,
+            Individual best, String path) {
         try (FileWriter writer = new FileWriter(path)) {
-            writer.write("Predicted,Actual\n");  // Header
+            writer.write("Predicted,Actual\n"); // Header
             for (int i = 0; i < testData.size(); i++) {
                 double output = best.getRoot().evaluate(testData.get(i));
                 int predicted = (output >= 0.5) ? 1 : 0;
@@ -30,7 +30,7 @@ public class GPClassifier {
 
         // Initialize random number generator with seed
         Random rand = new Random(seed);
-        Individual.setRandom(rand);  // Pass to Individual class for reproducibility
+        Individual.setRandom(rand); // Pass to Individual class for reproducibility
 
         // Load data
         List<double[]> trainData = DataParser.parseFeatures(trainPath);
@@ -40,15 +40,34 @@ public class GPClassifier {
 
         // Initialize GP
         int numFeatures = 5; // Open, High, Low, Close, Adj Close
-        Population population = new Population(500, numFeatures, 0.1, rand);
+        Population population = new Population(1000, numFeatures, 0.15, rand);
 
-        // Evolve for 50 generations
-        for (int gen = 0; gen < 50; gen++) {
-            population.getIndividuals().forEach(ind -> 
-                ind.calculateFitness(trainData, trainLabels));
-            population.evolve(numFeatures);
+        // Updated GPClassifier.java (partial)
+        List<double[]> validationData = trainData.subList(0, trainData.size() / 5); // 20% as validation
+        List<Integer> validationLabels = trainLabels.subList(0, trainLabels.size() / 5);
+
+        double bestValAccuracy = 0;
+        int patience = 5;
+        int noImprovementEpochs = 0;
+
+        for (int gen = 0; gen < 100; gen++) { // Increase max generations
+            population.getIndividuals().forEach(ind -> ind.calculateFitness(trainData, trainLabels));
+
             Individual best = population.getBest();
-            System.out.printf("Generation %d: Best Fitness = %.2f%n", gen, best.getFitness());
+            best.calculateFitness(validationData, validationLabels);
+            double valAcc = best.getFitness();
+
+            if (valAcc > bestValAccuracy) {
+                bestValAccuracy = valAcc;
+                noImprovementEpochs = 0;
+            } else {
+                noImprovementEpochs++;
+            }
+
+            if (noImprovementEpochs >= patience)
+                break;
+
+            population.evolve(numFeatures);
         }
 
         // Evaluate on test set
