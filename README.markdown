@@ -1,6 +1,20 @@
 # Bitcoin Price Prediction Project
 
 
+cd desicion_tree
+javac BTCDecisionTreePredictor.java
+java BTCDecisionTreePredictor ../data/BTC_train.csv ../data/BTC_test.csv
+
+# Test GP Classifier
+cd ../gp_classifier
+javac GPClassifier.java
+java gp_classifier.GPClassifier 42 ../data/BTC_train.csv ../data/BTC_test.csv
+
+# Test MLP
+cd ../MLP
+python3 StockPredictor.py
+
+
 ## how to run the project
 ```
 compilation : 
