@@ -24,7 +24,7 @@ public class Main {
     // Execute GPClassifier and capture metrics
     private static ModelMetrics runGPClassifier(String trainFile, String testFile, long seed) {
         try {
-            String[] command = {"java", "-cp", "gp_classifier", "gp_classifier.GPClassifier", String.valueOf(seed), trainFile, testFile};
+            String[] command = {"java", "-cp", ".", "gp_classifier.GPClassifier", String.valueOf(seed), trainFile, testFile};
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(true);
             Process process = pb.start();
@@ -52,39 +52,63 @@ public class Main {
     }
 
     // Execute BTCDecisionTreePredictor and capture metrics
+    // Execute BTCDecisionTreePredictor and capture metrics
     private static ModelMetrics runDecisionTree(String trainFile, String testFile) {
         try {
-            String[] command = {"java", "-cp", "desicion_tree", "BTCDecisionTreePredictor"};
+            String[] command = {"java", "-cp", ".", "desicion_tree.BTCDecisionTreePredictor"};
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(true);
             Process process = pb.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             double testAcc = 0;
-            Map<String, Double> classF1Scores = new HashMap<>();
-            String currentClass = null;
+            double class0F1 = 0, class1F1 = 0;
+            boolean foundClass0 = false, foundClass1 = false;
 
             while ((line = reader.readLine()) != null) {
+                System.out.println("DT Output: " + line); // Debug line - remove after testing
+                
                 if (line.startsWith("Test Accuracy:")) {
-                    testAcc = Double.parseDouble(line.split(": ")[1].replace("%", "")) / 100;
-                } else if (line.startsWith("Class ")) {
-                    currentClass = line.split(" ")[1];
-                    String[] metrics = line.split(", ");
-                    double f1 = Double.parseDouble(metrics[2].split(": ")[1]);
-                    classF1Scores.put(currentClass, f1);
+                    // Parse "Test Accuracy: 95.44%"
+                    String accuracyStr = line.split(": ")[1].replace("%", "");
+                    testAcc = Double.parseDouble(accuracyStr) / 100;
+                } else if (line.startsWith("Class 0 ") && line.contains("F1-Score:")) {
+                    // Parse "Class 0 - Precision: 0.915, Recall: 1.000, F1-Score: 0.956"
+                    String[] parts = line.split("F1-Score: ");
+                    if (parts.length > 1) {
+                        class0F1 = Double.parseDouble(parts[1]);
+                        foundClass0 = true;
+                    }
+                } else if (line.startsWith("Class 1 ") && line.contains("F1-Score:")) {
+                    // Parse "Class 1 - Precision: 1.000, Recall: 0.910, F1-Score: 0.953"
+                    String[] parts = line.split("F1-Score: ");
+                    if (parts.length > 1) {
+                        class1F1 = Double.parseDouble(parts[1]);
+                        foundClass1 = true;
+                    }
                 }
             }
             process.waitFor();
-            // Assuming binary classification (0 and 1), compute macro F1
-            double testF1 = classF1Scores.values().stream().mapToDouble(Double::doubleValue).average().orElse(0);
-            // Training metrics not directly output; assume similar to test for simplicity
+            
+            // Calculate macro F1 (average of both classes)
+            double testF1 = 0;
+            if (foundClass0 && foundClass1) {
+                testF1 = (class0F1 + class1F1) / 2;
+            } else if (foundClass0) {
+                testF1 = class0F1;
+            } else if (foundClass1) {
+                testF1 = class1F1;
+            }
+            
+            // Decision Tree doesn't output training metrics, so use test metrics as approximation
             return new ModelMetrics("Decision Tree", testAcc, testF1, testAcc, testF1);
+            
         } catch (Exception e) {
             System.err.println("Error running DecisionTree: " + e.getMessage());
             return null;
         }
     }
-
+    
     // Execute StockPredictor.py and capture metrics
     private static ModelMetrics runMLP(String trainFile, String testFile) {
         try {

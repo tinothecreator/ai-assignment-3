@@ -536,7 +536,7 @@ public class BTCDecisionTreePredictor {
             String actual = instance.classification;
             boolean match = predicted.equals(actual);
             
-            System.out.println(actual + "\t" + predicted + "\t\t" + (match ? "✓" : "✗"));
+            System.out.println(actual + "\t" + predicted + "\t\t" + (match ? "YES" : "NO"));
         }
     }
     
@@ -569,12 +569,12 @@ public class BTCDecisionTreePredictor {
         BTCDecisionTreePredictor predictor = new BTCDecisionTreePredictor();
         
         // Train the model
-        predictor.train("BTC_train.csv");
+        predictor.train("data/BTC_train.csv");
         
         // Print the tree structure
         predictor.printTree();
         
         // Test the model
-        predictor.test("BTC_test.csv");
+        predictor.test("data/BTC_test.csv");
     }
 }

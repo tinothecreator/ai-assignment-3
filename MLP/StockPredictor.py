@@ -22,7 +22,7 @@ class BTCMLPClassifier:
         self.feature_columns = ['Open', 'High', 'Low', 'Close', 'Adj Close']
         self.target_column = 'Output'
         
-    def load_data(self, train_path='../data/BTC_train.csv', test_path='../data/BTC_test.csv'):
+    def load_data(self, train_path='data/BTC_train.csv', test_path='data/BTC_test.csv'):
         try:
             self.train_df = pd.read_csv(train_path)
             self.test_df = pd.read_csv(test_path)
