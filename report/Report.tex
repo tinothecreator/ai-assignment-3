@@ -1,0 +1,182 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{booktabs} % For professional tables
+\usepackage{multirow} % For spanning rows
+\usepackage{colortbl} % For colored tables
+\usepackage{xcolor}
+
+% Define a light blue color for table header
+\definecolor{lightblue}{RGB}{173, 216, 230}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=blue,
+}
+
+\begin{document}
+
+\pagenumbering{gobble}
+
+\begin{center}            
+    {\LARGE\textbf{COS314 Assignment Three}}\\
+    
+    \vspace{4cm}
+    
+    {\Large\textbf{Aplication of Machine Learning Alogorithms to Stock Trading Prediction}}\\
+    \vspace{0.5cm}
+    {\large\textbf{Using GP, MLP and Decision Trees}}\\
+    
+    \vspace{12cm}
+
+    {\large Team:}\\
+    \vspace{0.3cm}
+    {\large Tinotenda Chirozvi (22547747)}\\
+    {\large Lubabalo Tshikila (22644106)}\\
+    {\large Dean Ramsay (22599012)}\\
+    
+    \vspace{2cm}
+    
+    {\large\textbf{Due Date: 24 May 2025}}\\
+    
+\end{center}
+
+\clearpage
+\pagenumbering{arabic} % Start with page number 1
+
+\section*{Abstract}
+This report presents the design, implementation, and evaluation of three machine learning algorithms for the classification of stock market movements. In particular the movement of the bitcoin value to predict whether it will rise(buy) or fall (sell). The three algorithms used: Genetic Programming Algorithm (GP), Decision Tree Algorithm (DT) and a Multi-Layer-Perceptron Algorithm (MLP).
+
+\section{Introduction}
+Data of historic BTC stock movements were provided, already divided into training and test data as BTC\_train.csv and BTC\_test.csv respectively.
+The training data was used to train the three models which were then evaluated using the test data to verify their performance.
+
+
+\section{Machine Learning Algorithms}
+
+\subsection{Genetic Programming Algorithm}
+The balance of pheromone influence is critical: if values accumulate too rapidly, the algorithm risks becoming trapped in local optima as ants repeatedly choose the same paths rather than exploring alternatives. Conversely, if pheromone values are too subtle, their effect becomes negligible, and the search degenerates into a random exploration. In our implementation, the influence of the pheromone is controlled by the parameter $\alpha = 1.0$ in the probability calculation, while the heuristic information (score-to-distance ratio) is weighted by $\beta = 3.0$.
+
+\subsection{Multi-Layer-Perceptron Algorithm}
+The MLP uses five inputs from the dataset: 'Open', 'High', 'Low', 'Close', 'Adj Close'. The 'Output' column from the dataset is used to verify the predicted classification against to determine the model's accuracy.
+
+The MLP is structured as into the following layers:
+\begin{itemize}
+\item Inputs: 5 price features ('Open', 'High', 'Low', 'Close', 'Adj Close')
+\item Hidden Layer 1: 128 neurons
+\item Hidden Layer 2: 64 neurons 
+\item Hidden Layer 3: 32 neurons
+\item Output Layer: 1 neuron with sigmoid activation
+\end{itemize}
+
+\subsubsection{Regularization Techniques}
+To prevent overfitting and improve generalization, several regularization methods were implemented:
+\begin{itemize}
+\item \textbf{Dropout}: 30\% of neurons were randomly deactivated during training
+\item \textbf{Normalization}: Data is normalized at each hidden layer
+\item \textbf{Early Stopping}: Training halted when validation loss stopped improving for 15 epochs
+\end{itemize}
+
+\subsubsection{Training Configuration}
+The model was trained with the following hyperparameters:
+\begin{itemize}
+\item \textbf{Loss Function}: Binary cross-entropy for classification
+\item \textbf{Optimizer}: Adam with learning rate of 0.001
+\item \textbf{Batch}: 32 samples per batch
+\item \textbf{Max Epochs}: 100
+\item \textbf{Validation Split}: 20\% of training data was used for the validation of its performance
+\item \textbf{Class Weights}: Applied to handle imbalanced buy/sell signals
+\end{itemize}
+
+Initially all weight values between neurons are random. During forward propagation, input features pass through each layer, with ReLU activation functions introducing non-linearity in hidden layers. After the initial run we perform the loss calculation which compares the result at the output layer to the actual value in the data using binary cross-entropy loss. Backpropagation is used to determine how each weight value contributed to the error. This information is then used to adjust the weight values to help the algorithm "learn" from previous runs. The updating of the weights is done by Adam optimizer which adaptively adjusts the learning rate for each parameter using the following simplified formula:
+
+\begin{equation}
+{weight_{new}} =  weight_{old} - (learning_{rate} \times gradient \times adam_{adjustments})
+\end{equation}
+
+where $adam_{adjustments}$ uses momentum and adaptive learning rate scaling based on historical gradients.
+
+Sigmoid activation is used at the output neuron to classify the output as binary, producing a probability between 0 and 1. Where a value greater than or equal to 0.5 results in a 1 (buy signal) and a value less than 0.5 results in a 0 (sell signal).
+
+\subsubsection{Model Persistence}
+To ensure reproducible results, the trained model was saved after training completion. Subsequent evaluations used the saved model rather than retraining, eliminating variability from random weight initialization. A fixed random seed of 42 was used for consistent results across multiple runs.
+
+\subsection{Decision Tree Algorithm}
+The three main constraints used in the ACO algorithm are:
+\begin{itemize}
+\item Each vehicles route must not exceed tim/distance limit ($t_{max}$)
+\end{itemize}
+To solve this we simply have to check what a vehicles current distance/time value is before select a next node and then check whether this value plus the time taken to reach the candidate node and get back to the end node is less than its ($t_{max}$) value. As shown in algorithm (1).
+
+\begin{itemize}
+\item Each node can be visited visited by only 1 vehicle
+\end{itemize}
+For this constraint, we maintain a list of nodes ($unvitednodes$) which stores all the nodes that have not yet been visited. After the construction of each route we update this list by removing the nodes that were used in the vehicles route construction.
+
+\begin{itemize}
+\item All vehicles must begin at the indicated start node and finish at the end node.
+\end{itemize}
+All vehicles have a ($path$) vector attribute which is initialized to contain the value 0 at the start. The route is then constructed from this point until, there are no viable option for the node to move to. When this is the case, the node is forced to return to the end node. It is guaranteed to reach the end node due to the check made in algorithm (1).
+
+\section{Results}
+
+% Summary table of all algorithms
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+{\textbf{Model}} & {\textbf{Seed value}} & \multicolumn{2}{c|}{\textbf{Training}} & \multicolumn{2}{c|}{\textbf{Testing}} \\
+\cline{3-6}
+& & \textbf{Acc} & \textbf{F1} & \textbf{Acc} & \textbf{F1} \\
+\hline
+Genetic Programming & & & & & \\
+\hline
+MLP & 42 & 0.7244 & 0.7921 & 0.9468 & 0.9449\\
+\hline
+Decision Tree & & & & & \\
+\hline
+\end{tabular}
+\caption{Performance comparison of machine learning algorithms}
+\label{tab:results}
+\end{table}
+
+\clearpage
+\section{Analysis}
+
+Several key observations can be made from the results of the ACO above.
+
+\subsection{Problem Size Affect}
+
+The ACO algorithm seemed to find and maintain solutions to smaller problems such as those with 33 nodes quickly but failed to improve on them. Perhaps more exploration may be needed.
+
+\subsection{Impact of Vehicle Count and Time Constraints}
+
+\begin{itemize}
+    \item When more vehicles are available (e.g., p3.4.s.txt with 4 vehicles), the algorithm achieves higher scores compared to instances with fewer vehicles (e.g., p3.2.a.txt with 2 vehicles).
+    \item Increasing ($t_{max}$) leads to higher scores, as vehicles can visit more high score nodes. Compare p3.2.a.txt ($t_{max}=7.5$, score=90) with p3.2.c.txt ($t_{max}=12.5$, score=160).
+\end{itemize}
+
+\subsection{Potential Improvements}
+
+To address the limited improvement observed in some instances, several modifications could be made:
+
+\begin{itemize}
+    \item \textbf{Dynamic Parameter Adjustment}: Adapting parameters during the run based on convergence behavior could help escape local optima.
+    
+    \item \textbf{Min-Max Pheromone Limits}: Implementing upper and lower bounds on pheromone values might prevent premature convergence.
+    
+    \item \textbf{Solution Diversity Mechanisms}: Introducing mechanisms to maintain diversity in the population, such as different pheromone matrices for subsets of ants or occasional random restarts.
+    
+    \item \textbf{Local Search}: Incorporating local search procedures to refine solutions could improve the quality of results, especially when the ACO reaches a plateau.
+\end{itemize}
+
+Overall, the ACO algorithm has demonstrated it was effective in solving the TOP across various datasets, particularly in larger, more complex instances.
+
+\end{document}
