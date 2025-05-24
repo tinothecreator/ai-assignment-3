@@ -62,7 +62,173 @@ The training data was used to train the three models which were then evaluated u
 \section{Machine Learning Algorithms}
 
 \subsection{Genetic Programming Algorithm}
-The balance of pheromone influence is critical: if values accumulate too rapidly, the algorithm risks becoming trapped in local optima as ants repeatedly choose the same paths rather than exploring alternatives. Conversely, if pheromone values are too subtle, their effect becomes negligible, and the search degenerates into a random exploration. In our implementation, the influence of the pheromone is controlled by the parameter $\alpha = 1.0$ in the probability calculation, while the heuristic information (score-to-distance ratio) is weighted by $\beta = 3.0$.
+\subsubsection{Algorithm Overview}
+
+\paragraph{Problem Formulation}
+The GP classifier addresses a binary classification problem where input features represent historical financial indicators, and the output determines whether a stock should be purchased (class 1) or not (class 0). The algorithm evolves mathematical expressions that map five normalized financial features to a classification decision through sigmoid activation.
+
+\subsubsection{Tree Representation Structure}
+\paragraph{Node Architecture}
+The GP implementation employs a heterogeneous tree structure comprising terminal and non-terminal nodes. The Node interface defines the fundamental operations required for tree evaluation and manipulation:
+
+\textbf{Terminal Nodes:}
+\begin{itemize}
+    \item \textbf{FeatureNode}: Represents input variables ($x_0$ through $x_4$) corresponding to the five financial features.
+    \item \textbf{ConstantNode}: Contains randomly generated constant values in the range $[-1, 1]$ to provide numerical flexibility.
+\end{itemize}
+
+\textbf{Non-Terminal Nodes:}
+\begin{itemize}
+    \item \textbf{AddNode}: Performs addition operations between child nodes.
+    \item \textbf{SubtractNode}: Executes subtraction operations between child nodes.
+    \item \textbf{MultiplyNode}: Implements multiplication operations between child nodes.
+    \item \textbf{SafeDivideNode}: Conducts protected division with safeguards against division by zero.
+\end{itemize}
+
+\paragraph{Tree Generation Strategy}
+The algorithm implements a ramped half-and-half initialization strategy, alternating between grow and full methods during tree construction. Trees are constrained to a maximum depth of 4 levels and a maximum node count of 100 to prevent excessive bloat while maintaining expression diversity.
+
+\subsubsection{Genetic Operators Implementation}
+\paragraph{Crossover Operation}
+The crossover operator implements subtree exchange between two parent individuals. The process involves:
+\begin{enumerate}
+    \item \textbf{Subtree Selection}: Random selection of subtrees from both parent trees using uniform distribution.
+    \item \textbf{Subtree Exchange}: Replacement of the selected subtree in the first parent with the corresponding subtree from the second parent.
+    \item \textbf{Offspring Generation}: Creation of a new individual containing the modified tree structure.
+\end{enumerate}
+This approach maintains syntactic correctness while exploring new combinations of existing genetic material.
+
+\paragraph{Mutation Operation}
+Mutation introduces genetic diversity through subtree replacement. The implementation:
+\begin{enumerate}
+    \item \textbf{Target Selection}: Random identification of a subtree within the individual.
+    \item \textbf{Subtree Generation}: Creation of a new random subtree using the same construction method as initialization.
+    \item \textbf{Replacement}: Substitution of the selected subtree with the newly generated structure.
+\end{enumerate}
+The mutation rate is set to 15\% to balance exploration and exploitation during evolution.
+
+\paragraph{Selection Mechanism}
+Tournament selection serves as the parent selection method with a tournament size of 5 individuals. This approach:
+\begin{enumerate}
+    \item \textbf{Candidate Sampling}: Random selection of 5 individuals from the current population.
+    \item \textbf{Fitness Comparison}: Identification of the individual with highest fitness value.
+    \item \textbf{Parent Selection}: Return of the best individual as a parent for reproduction.
+\end{enumerate}
+Tournament selection maintains selection pressure while preserving population diversity compared to purely elitist approaches.
+
+\subsubsection{Fitness Evaluation Framework}
+\paragraph{Classification Process}
+The fitness evaluation process transforms continuous tree outputs into binary classifications:
+\begin{enumerate}
+    \item \textbf{Tree Evaluation}: Computation of raw numerical output for each training instance.
+    \item \textbf{Sigmoid Activation}: Application of sigmoid function $\sigma(x) = \frac{1}{1+e^{-x}}$ to map outputs to $[0,1]$ range.
+    \item \textbf{Threshold Classification}: Binary classification using 0.5 threshold.
+    \item \textbf{Accuracy Calculation}: Computation of classification accuracy as the proportion of correct predictions.
+\end{enumerate}
+
+\paragraph{Parsimony Pressure}
+To control tree bloat, the implementation incorporates parsimony pressure through fitness adjustment:
+\begin{equation}
+\text{adjusted\_fitness} = \text{accuracy} \times (0.99)^{\text{tree\_size}/50}
+\end{equation}
+This mechanism penalizes larger trees while preserving classification performance, encouraging the evolution of compact and interpretable solutions.
+
+\subsubsection{Data Processing Pipeline}
+\paragraph{Feature Normalization}
+The DataParser class implements min-max normalization to standardize input features:
+\begin{enumerate}
+    \item \textbf{Range Calculation}: Determination of minimum and maximum values for each feature across the training dataset.
+    \item \textbf{Normalization}: Linear scaling of each feature to $[0,1]$ range using the formula: $\frac{\text{value} - \text{min}}{\text{max} - \text{min}}$.
+    \item \textbf{Constant Handling}: Assignment of 0.5 value for features with zero variance to prevent numerical instability.
+\end{enumerate}
+
+\paragraph{Data Validation}
+The system ensures data integrity through:
+\begin{itemize}
+    \item Header row skipping during CSV parsing.
+    \item Binary label enforcement (values $> 0$ mapped to 1, others to 0).
+    \item Exception handling for malformed data entries.
+    \item Parallel processing support for fitness evaluation.
+\end{itemize}
+
+\subsubsection{Population Management}
+\paragraph{Population Structure}
+The Population class maintains a collection of 1000 individuals, representing diverse mathematical expressions for the classification task. Population management includes:
+\begin{itemize}
+    \item \textbf{Initialization}: Random generation of initial population using ramped half-and-half method.
+    \item \textbf{Evolution}: Generational replacement with complete population turnover.
+    \item \textbf{Diversity Maintenance}: Stochastic selection and variation operators to preserve genetic diversity.
+\end{itemize}
+
+\paragraph{Termination Criteria}
+The algorithm employs multiple termination conditions:
+\begin{itemize}
+    \item \textbf{Maximum Generations}: Hard limit of 100 generations to prevent infinite execution.
+    \item \textbf{Early Stopping}: Validation-based stopping with patience parameter of 5 generations.
+    \item \textbf{Convergence Detection}: Monitoring of validation accuracy improvement to identify optimal stopping points.
+\end{itemize}
+
+\subsubsection{Performance Optimization Features}
+\paragraph{Parallel Processing}
+The implementation leverages Java 8 parallel streams for fitness evaluation, enabling concurrent processing of multiple individuals during population assessment. This approach significantly reduces computational time for large populations.
+
+\paragraph{Memory Management}
+Efficient memory utilization through:
+\begin{itemize}
+    \item Immutable node structures to prevent unintended modifications.
+    \item Proper cloning mechanisms for genetic operations.
+    \item Garbage collection optimization through object lifecycle management.
+\end{itemize}
+
+\subsubsection{Validation and Testing Framework}
+\paragraph{Cross-Validation Strategy}
+The algorithm implements a validation split approach:
+\begin{itemize}
+    \item \textbf{Training Set}: 80\% of data used for fitness evaluation and evolution.
+    \item \textbf{Validation Set}: 20\% of training data reserved for early stopping decisions.
+    \item \textbf{Test Set}: Independent dataset for final performance evaluation.
+\end{itemize}
+
+\paragraph{Performance Metrics}
+Comprehensive evaluation includes:
+\begin{itemize}
+    \item \textbf{Accuracy}: Overall classification correctness.
+    \item \textbf{F1-Score}: Harmonic mean of precision and recall for balanced evaluation.
+    \item \textbf{Generalization Assessment}: Comparison between training and test performance.
+\end{itemize}
+
+\subsubsection{Implementation Robustness}
+\paragraph{Numerical Stability}
+The SafeDivideNode implementation prevents division by zero through threshold checking ($|\text{denominator}| < 1 \times 10^{-5}$), returning zero for undefined operations. This approach maintains program execution stability while preserving mathematical meaning.
+
+\paragraph{Reproducibility}
+Seed-based random number generation ensures experimental reproducibility. The system accepts seed values as command-line arguments and propagates them throughout all stochastic components.
+
+\subsubsection{Algorithm Parameters}
+The key parameters used in the GP implementation are summarized in Table~\ref{tab:gp_parameters}.
+\begin{table}[htbp]
+\centering
+\caption{Genetic Programming Algorithm Parameters}
+\label{tab:gp_parameters}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Parameter} & \textbf{Value} \\
+\hline
+Population Size & 1000 \\
+Maximum Generations & 100 \\
+Maximum Tree Depth & 4 \\
+Maximum Node Count & 100 \\
+Mutation Rate & 15\% \\
+Tournament Size & 5 \\
+Early Stopping Patience & 5 generations \\
+Parsimony Pressure Factor & 0.99 \\
+Division Safety Threshold & $1 \times 10^{-5}$ \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Conclusion}
+The implemented Genetic Programming classifier demonstrates a comprehensive approach to evolutionary computation for financial classification tasks. The design incorporates established GP principles while addressing practical considerations such as numerical stability, computational efficiency, and result reproducibility. The modular architecture supports extensibility and maintenance while providing robust performance for binary classification scenarios.
 
 \subsection{Multi-Layer-Perceptron Algorithm}
 The MLP uses five inputs from the dataset: 'Open', 'High', 'Low', 'Close', 'Adj Close'. The 'Output' column from the dataset is used to verify the predicted classification against to determine the model's accuracy.
