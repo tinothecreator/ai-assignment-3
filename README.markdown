@@ -22,7 +22,7 @@ javac -cp ".:gp_classifier:desicion_tree" Main.java desicion_tree/BTCDecisionTre
 
 
 run : 
-java -cp ".:gp_classifier:desicion_tree" Main 42 data/BTC_train.csv data/BTC_test.csv
+java -cp ".:gp_classifier:desicion_tree" Main 1234 data/BTC_train.csv data/BTC_test.csv
 
 ```
 
