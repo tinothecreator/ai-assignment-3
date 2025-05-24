@@ -1,0 +1,3 @@
+# From Project_Root
+javac gp_classifier/*.java
+java gp_classifier.GPClassifier 1234 data/BTC_train.csv data/BTC_test.csv
