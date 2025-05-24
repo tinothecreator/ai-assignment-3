@@ -6,11 +6,12 @@
 \usepackage{amsmath}
 \usepackage{hyperref}
 \usepackage{tikz}
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{colortbl}
+\usepackage{booktabs} % For professional tables
+\usepackage{multirow} % For spanning rows
+\usepackage{colortbl} % For colored tables
 \usepackage{xcolor}
 
+% Define a light blue color for table header
 \definecolor{lightblue}{RGB}{173, 216, 230}
 
 \hypersetup{
@@ -48,7 +49,7 @@
 \end{center}
 
 \clearpage
-\pagenumbering{arabic}
+\pagenumbering{arabic} % Start with page number 1
 
 \section*{Abstract}
 This report presents the design, implementation, and evaluation of three machine learning algorithms for the classification of stock market movements. In particular the movement of the bitcoin value to predict whether it will rise(buy) or fall (sell). The three algorithms used: Genetic Programming Algorithm (GP), Decision Tree Algorithm (DT) and a Multi-Layer-Perceptron Algorithm (MLP).
@@ -64,27 +65,48 @@ The training data was used to train the three models which were then evaluated u
 The balance of pheromone influence is critical: if values accumulate too rapidly, the algorithm risks becoming trapped in local optima as ants repeatedly choose the same paths rather than exploring alternatives. Conversely, if pheromone values are too subtle, their effect becomes negligible, and the search degenerates into a random exploration. In our implementation, the influence of the pheromone is controlled by the parameter $\alpha = 1.0$ in the probability calculation, while the heuristic information (score-to-distance ratio) is weighted by $\beta = 3.0$.
 
 \subsection{Multi-Layer-Perceptron Algorithm}
-Route construction begins at the start node and proceeds iteratively. At each step, the algorithm identifies \textit{viable nodes} - those unvisited nodes that can be reached and still allow the vehicle to return to the end node without exceeding $t_{max}$. This feasibility check is calculated as:
+The MLP uses five inputs from the dataset: 'Open', 'High', 'Low', 'Close', 'Adj Close'. The 'Output' column from the dataset is used to verify the predicted classification against to determine the model's accuracy.
 
-\begin{equation}
-d_{current,node} + d_{node,end} + d_{current} \leq t_{max}
-\end{equation}
-
-where $d_{current,node}$ is the distance from the current node to the candidate node, $d_{node,end}$ is the distance from the candidate to the end node, and $d_{current}$ is the total distance traveled so far.
-
-From this feasible set, the next node is selected probabilistically using a formula that balances exploitation (following strong pheromone trails) with exploration (considering potential rewards). The probability of selecting node $j$ when at node $i$ is given by:
-
-\begin{equation}
-p_{ij} = \frac{\tau_{ij}^{\alpha} \cdot \eta_{ij}^{\beta} + r}{\sum_{l \in \text{viable}} (\tau_{il}^{\alpha} \cdot \eta_{il}^{\beta} + r)}
-\end{equation}
-
-where:
+The MLP is structured as into the following layers:
 \begin{itemize}
-\item $\tau_{ij}$ is the pheromone level on edge $(i,j)$
-\item $\eta_{ij} = \frac{\text{score}_j}{d_{ij}}$ is the heuristic information (score-to-distance ratio)
-\item $\alpha$ (pP = 1.0) and $\beta$ (hP = 2.0) are parameters controlling the relative influence of pheromone versus heuristic
-\item $r$ is a small random factor (0.1) added to encourage exploration
+\item Inputs: 5 price features ('Open', 'High', 'Low', 'Close', 'Adj Close')
+\item Hidden Layer 1: 128 neurons
+\item Hidden Layer 2: 64 neurons 
+\item Hidden Layer 3: 32 neurons
+\item Output Layer: 1 neuron with sigmoid activation
 \end{itemize}
+
+\subsubsection{Regularization Techniques}
+To prevent overfitting and improve generalization, several regularization methods were implemented:
+\begin{itemize}
+\item \textbf{Dropout}: 30\% of neurons were randomly deactivated during training
+\item \textbf{Normalization}: Data is normalized at each hidden layer
+\item \textbf{Early Stopping}: Training halted when validation loss stopped improving for 15 epochs
+\end{itemize}
+
+\subsubsection{Training Configuration}
+The model was trained with the following hyperparameters:
+\begin{itemize}
+\item \textbf{Loss Function}: Binary cross-entropy for classification
+\item \textbf{Optimizer}: Adam with learning rate of 0.001
+\item \textbf{Batch}: 32 samples per batch
+\item \textbf{Max Epochs}: 100
+\item \textbf{Validation Split}: 20\% of training data was used for the validation of its performance
+\item \textbf{Class Weights}: Applied to handle imbalanced buy/sell signals
+\end{itemize}
+
+Initially all weight values between neurons are random. During forward propagation, input features pass through each layer, with ReLU activation functions introducing non-linearity in hidden layers. After the initial run we perform the loss calculation which compares the result at the output layer to the actual value in the data using binary cross-entropy loss. Backpropagation is used to determine how each weight value contributed to the error. This information is then used to adjust the weight values to help the algorithm "learn" from previous runs. The updating of the weights is done by Adam optimizer which adaptively adjusts the learning rate for each parameter using the following simplified formula:
+
+\begin{equation}
+{weight_{new}} =  weight_{old} - (learning_{rate} \times gradient \times adam_{adjustments})
+\end{equation}
+
+where $adam_{adjustments}$ uses momentum and adaptive learning rate scaling based on historical gradients.
+
+Sigmoid activation is used at the output neuron to classify the output as binary, producing a probability between 0 and 1. Where a value greater than or equal to 0.5 results in a 1 (buy signal) and a value less than 0.5 results in a 0 (sell signal).
+
+\subsubsection{Model Persistence}
+To ensure reproducible results, the trained model was saved after training completion. Subsequent evaluations used the saved model rather than retraining, eliminating variability from random weight initialization. A fixed random seed of 42 was used for consistent results across multiple runs.
 
 \subsection{Decision Tree Algorithm}
 The three main constraints used in the ACO algorithm are:
@@ -105,38 +127,24 @@ All vehicles have a ($path$) vector attribute which is initialized to contain th
 
 \section{Results}
 
-% Summary table of all datasets
-\begin{table}[htbp]
+% Summary table of all algorithms
+\begin{table}[h]
 \centering
-\caption{Summary of ACO Results Across All Datasets}
-\label{tab:summary}
-\begin{tabular}{|l|c|c|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Dataset} & \textbf{Nodes} & \textbf{Vehicles} & \textbf{Max Moves} & \textbf{Best Iter} & \textbf{Total Score} & \textbf{Total Dist} \\
+{\textbf{Model}} & {\textbf{Seed value}} & \multicolumn{2}{c|}{\textbf{Training}} & \multicolumn{2}{c|}{\textbf{Testing}} \\
+\cline{3-6}
+& & \textbf{Acc} & \textbf{F1} & \textbf{Acc} & \textbf{F1} \\
 \hline
-p3.2.a.txt & 33 & 2 & 7.5 & i0 & 90 & 13.11 \\
+Genetic Programming & & & & & \\
 \hline
-p3.2.c.txt & 33 & 2 & 12.5 & i2 & 160 & 24.10 \\
+MLP & 42 & 0.7244 & 0.7921 & 0.9468 & 0.9449\\
 \hline
-p3.3.a.txt & 33 & 3 & 5.0 & i0 & 30 & 7.83 \\
-\hline
-p3.3.c.txt & 33 & 3 & 8.3 & i0 & 120 & 22.84 \\
-\hline
-p3.4.s.txt & 33 & 4 & 26.2 & i2 & 520 & 101.29 \\
-\hline
-p3.4.t.txt & 33 & 4 & 27.5 & i0 & 490 & 107.30 \\
-\hline
-p7.2.a.txt & 102 & 2 & 10.0 & i0 & 30 & 18.94 \\
-\hline
-p7.2.m.txt & 102 & 2 & 130.0 & i4 & 477 & 251.82 \\
-\hline
-p7.3.h.txt & 102 & 3 & 53.3 & i2 & 318 & 158.52 \\
-\hline
-p7.4.g.txt & 102 & 4 & 35.0 & i3 & 190 & 135.91 \\
-\hline
-p7.4.q.txt & 102 & 4 & 85.0 & i2 & 540 & 332.15 \\
+Decision Tree & & & & & \\
 \hline
 \end{tabular}
+\caption{Performance comparison of machine learning algorithms}
+\label{tab:results}
 \end{table}
 
 \clearpage
