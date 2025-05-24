@@ -32,6 +32,8 @@ public class Main {
             String line;
             double trainAcc = 0, trainF1 = 0, testAcc = 0, testF1 = 0;
 
+            System.out.println("Running GPClassifier with command: " + String.join(" ", command));
+
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("Final Train Accuracy:")) {
                     trainAcc = Double.parseDouble(line.split(": ")[1].replace("%", "")) / 100;
@@ -44,6 +46,12 @@ public class Main {
                 }
             }
             process.waitFor();
+            
+            System.out.println("GPClassifier Train Accuracy: " + trainAcc);
+            System.out.println("GPClassifier Train F1: " + trainF1);    
+            System.out.println("GPClassifier Test Accuracy: " + testAcc);
+            System.out.println("GPClassifier Test F1: " + testF1);
+
             return new ModelMetrics("Genetic Programming", trainAcc, trainF1, testAcc, testF1);
         } catch (Exception e) {
             System.err.println("Error running GPClassifier: " + e.getMessage());
@@ -121,6 +129,8 @@ public class Main {
             String line;
             double trainAcc = 0, trainF1 = 0, testAcc = 0, testF1 = 0;
 
+            System.out.println("Running MLP with command: " + String.join(" ", command));
+
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("Training Accuracy:")) {
                     trainAcc = Double.parseDouble(line.split(": ")[1]);
@@ -133,6 +143,12 @@ public class Main {
                 }
             }
             process.waitFor();
+
+            System.out.println("MLP Training Accuracy: " + trainAcc);
+            System.out.println("MLP Training F1: " + trainF1);  
+            System.out.println("MLP Testing Accuracy: " + testAcc);
+            System.out.println("MLP Testing F1: " + testF1);
+
             return new ModelMetrics("MLP", trainAcc, trainF1, testAcc, testF1);
         } catch (Exception e) {
             System.err.println("Error running MLP: " + e.getMessage());
