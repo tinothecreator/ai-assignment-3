@@ -1,5 +1,18 @@
 # Bitcoin Price Prediction Project
 
+
+## how to run the project
+```
+compilation : 
+javac -cp ".:gp_classifier:desicion_tree" Main.java desicion_tree/BTCDecisionTreePredictor.java gp_classifier/GPClassifier.java gp_classifier/Individual.java gp_classifier/Population.java gp_classifier/DataParser.java gp_classifier/Node.java gp_classifier/FeatureNode.java gp_classifier/ConstantNode.java gp_classifier/AddNode.java gp_classifier/SubtractNode.java gp_classifier/MultiplyNode.java gp_classifier/SafeDivideNode.java gp_classifier/DivideNode.java
+
+
+run : 
+java -cp ".:gp_classifier:desicion_tree" Main 42 data/BTC_train.csv data/BTC_test.csv
+
+```
+
+
 ## Project Structure
 ```
 Project_Root/

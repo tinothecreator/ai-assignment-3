@@ -1,0 +1,34 @@
+COS314 Assignment 3 Report
+=========================
+Group Members: [Student Names Here]
+
+Model Design Specifications:
+
+Genetic Programming:
+- Population size: 1000
+- Mutation rate: 0.15
+- Features: Open, High, Low, Close, Adj Close
+- Early stopping with patience of 5 generations
+
+Multi-Layer Perceptron:
+- Architecture: [128, 64, 32] neurons
+- Activation: ReLU (hidden), Sigmoid (output)
+- Regularization: L2 (0.001), Dropout (0.3)
+- Optimizer: Adam, Learning rate: 0.001
+- Callbacks: EarlyStopping, ReduceLROnPlateau
+
+Decision Tree (J48):
+- Algorithm: ID3 with quartile-based discretization
+- Features: Open, High, Low, Close, Adj Close, PriceChange, VolatilityRange
+- Discretization: Quartiles (VeryLow, Low, Medium, High)
+
+Results Table:
+| Model             | Seed | Acc (Train) | F1 (Train) | Acc (Test) | F1 (Test) |
+|-------------------|------|-------------|------------|------------|-----------|
+| Genetic Programming |   42 | 0.00       | 0.00      | 0.00      | 0.00     |
+| Decision Tree     |   42 | 0.00       | 0.00      | 0.00      | 0.00     |
+
+Statistical Analysis:
+Error: Prediction lists have different sizes
+
+Note: Actual performance metrics may vary based on data and seed.
