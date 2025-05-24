@@ -11,6 +11,10 @@ run :
 java -cp ".:gp_classifier:desicion_tree" Main 42 data/BTC_train.csv data/BTC_test.csv
 
 ```
+or 
+```
+java -cp ".;gp_classifier;desicion_tree" Main 42 data/BTC_train.csv data/BTC_test.csv
+```
 
 
 ## Project Structure
