@@ -1,6 +1,4 @@
 # Bitcoin Price Prediction Project
-
-
 cd desicion_tree
 javac BTCDecisionTreePredictor.java
 java BTCDecisionTreePredictor ../data/BTC_train.csv ../data/BTC_test.csv
@@ -11,21 +9,26 @@ javac GPClassifier.java
 java gp_classifier.GPClassifier 42 ../data/BTC_train.csv ../data/BTC_test.csv
 
 # Test MLP
-cd ../MLP
-python3 StockPredictor.py
+* Enter the MLP directory using `cd MLP`
+* Install dependencies by running `pip install -r requirements.txt`
+* To run with previously trained model, simply run `python StockPredictor.py`
+* To first retrain a new model and then run, first delete `trained_bt_model.keras` then run `python StockPredictor.py`
 
 
-## how to run the project
-```
+## Run the project
+
 compilation : 
-javac -cp ".:gp_classifier:desicion_tree" Main.java desicion_tree/BTCDecisionTreePredictor.java gp_classifier/GPClassifier.java gp_classifier/Individual.java gp_classifier/Population.java gp_classifier/DataParser.java gp_classifier/Node.java gp_classifier/FeatureNode.java gp_classifier/ConstantNode.java gp_classifier/AddNode.java gp_classifier/SubtractNode.java gp_classifier/MultiplyNode.java gp_classifier/SafeDivideNode.java gp_classifier/DivideNode.java
-
-
-run : 
-java -cp ".:gp_classifier:desicion_tree" Main 1234 data/BTC_train.csv data/BTC_test.csv
-
 ```
-or 
+javac -cp ".:gp_classifier:desicion_tree" Main.java desicion_tree/BTCDecisionTreePredictor.java gp_classifier/GPClassifier.java gp_classifier/Individual.java gp_classifier/Population.java gp_classifier/DataParser.java gp_classifier/Node.java gp_classifier/FeatureNode.java gp_classifier/ConstantNode.java gp_classifier/AddNode.java gp_classifier/SubtractNode.java gp_classifier/MultiplyNode.java gp_classifier/SafeDivideNode.java gp_classifier/DivideNode.java
+```
+
+
+run(WSL) : 
+```
+java -cp ".:gp_classifier:desicion_tree" Main 1234 data/BTC_train.csv data/BTC_test.csv
+```
+
+or (Powershell)
 ```
 java -cp ".;gp_classifier;desicion_tree" Main 42 data/BTC_train.csv data/BTC_test.csv
 ```
